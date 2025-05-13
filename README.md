@@ -23,7 +23,7 @@ pod 'Fuzzywuzzy_swift', :git=> 'https://github.com/T-Pro/Fuzzywuzzy_swift.git'
 ### Carthage
 Add the following line to your Cartfile. And run `carthage update`
 ```
-github "lxian/Fuzzywuzzy_swift"
+github "T-Pro/Fuzzywuzzy_swift"
 ```
 ### Manually
 drag the `Fuzzywuzzy_swift` folder into your project
