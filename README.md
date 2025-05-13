@@ -4,15 +4,26 @@ Fuzzy String Matching in Swift using Levenshtein Distance. Ported from the pytho
 It has no external dependancies. And thanks to Swift String, it can support multi-language.
 
 # Installation
+### Swift Package Manager
+The [Swift Package Manager](https://swift.org/package-manager/) is a tool for automating the distribution of Swift code and is integrated into the `swift` compiler.
+
+Once you have your Swift package set up, adding Alamofire as a dependency is as easy as adding it to the `dependencies` value of your `Package.swift` or the Package list in Xcode.
+
+```swift
+dependencies: [
+    .package(url: "https://github.com/T-Pro/Fuzzywuzzy_swift.git", .upToNextMajor(from: "0.0.4"))
+]
+```
+
+### Cocoapod
+Add the following line to your Podfile. And run `pod install`
+```
+pod 'Fuzzywuzzy_swift', :git=> 'https://github.com/T-Pro/Fuzzywuzzy_swift.git'
+```
 ### Carthage
 Add the following line to your Cartfile. And run `carthage update`
 ```
 github "lxian/Fuzzywuzzy_swift"
-```
-### Cocoapod
-Add the following line to your Podfile. And run `pod install`
-```
-pod 'Fuzzywuzzy_swift', :git=> 'https://github.com/lxian/Fuzzywuzzy_swift.git'
 ```
 ### Manually
 drag the `Fuzzywuzzy_swift` folder into your project
