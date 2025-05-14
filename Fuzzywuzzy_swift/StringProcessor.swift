@@ -8,28 +8,31 @@
 
 import Foundation
 
-class StringProcessor: NSObject {
+private let REGEX = "\\W+"
 
-  // swiftlint:disable force_try
-  @available(iOS 16.0, macOS 13.0, watchOS 9.0, tvOS 16.0, visionOS 1.0, *)
-  private static let cachedRegex: Regex = {
-    try! Regex("\\W+").ignoresCase()
-  }()
+// swiftlint:disable force_try
+@available(iOS 16.0, macOS 13.0, watchOS 9.0, tvOS 16.0, visionOS 1.0, *)
+private let cachedRegex: Regex = {
+  try! Regex(REGEX).ignoresCase()
+}()
 
-  private static let cachedNSRegularExpression: NSRegularExpression = {
-    try! NSRegularExpression(pattern: "\\W+", options: .caseInsensitive)
-  }()
-  // swiftlint:enable force_try
+private let cachedNSRegularExpression: NSRegularExpression = {
+  try! NSRegularExpression(pattern: REGEX, options: .caseInsensitive)
+}()
+// swiftlint:enable force_try
+
+class StringProcessor {
 
   /// Process string by
   /// removing all but letters and numbers
   /// trim whitespace
   /// force to lower case
-  class func process(value: String) -> String {
+  class func process(value: String, forceAscii: Bool = true) -> String {
     if value.isEmpty {
         return value
     }
-    let lowercased: String = value.lowercased()
+    let processed: String = forceAscii ? asciidammit(value) : value
+    let lowercased: String = processed.lowercased()
     let replaced: String
     if #available(iOS 16.0, macOS 13.0, watchOS 9.0, tvOS 16.0, visionOS 1.0, *) {
       replaced = lowercased.replacing(cachedRegex, with: " ")
@@ -43,4 +46,26 @@ class StringProcessor: NSObject {
     }
     return replaced.trimmingCharacters(in: CharacterSet(charactersIn: " "))
   }
+}
+
+
+/// Converts a string to ASCII-only by removing or replacing non-ASCII characters.
+/// If the string is already ASCII, returns it as-is.
+/// Otherwise, attempts to transliterate or remove non-ASCII characters.
+private func asciidammit(_ value: String) -> String {
+  // If string is already ASCII, return as is
+  if value.canBeConverted(to: .ascii) {
+    if let asciiData = value.data(using: .ascii) {
+      return String(data: asciiData, encoding: .ascii) ?? value
+    }
+    return value
+  }
+  // Try to transliterate to ASCII (removes accents, etc.)
+  let mutable = NSMutableString(string: value) as CFMutableString
+  CFStringTransform(mutable, nil, kCFStringTransformToLatin, false)
+  CFStringTransform(mutable, nil, kCFStringTransformStripCombiningMarks, false)
+  let asciiString = mutable as String
+  // Remove any remaining non-ASCII characters
+  let filtered = asciiString.unicodeScalars.filter { $0.isASCII }
+  return String(String.UnicodeScalarView(filtered))
 }

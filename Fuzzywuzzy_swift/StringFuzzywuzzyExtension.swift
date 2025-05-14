@@ -53,22 +53,6 @@ public extension String {
     return Int((scores.max() ?? 0) * 100)
   }
 
-  static private func fuzzProcessAndSort(value: String, fullProcess: Bool = true) -> String {
-    let value: String = fullProcess ? StringProcessor.process(value: value) : value
-    return Array(value.components(separatedBy: " "))
-      .sorted()
-      .joined(separator: " ")
-      .trimmingCharacters(in: CharacterSet(charactersIn: " "))
-  }
-
-  static private func fuzzTokenSort(lhs: String, rhs: String, partial: Bool = true, fullProcess: Bool = true) -> Int {
-    let sortedLhs: String = fuzzProcessAndSort(value: lhs, fullProcess: fullProcess)
-    let sortedRhs: String = fuzzProcessAndSort(value: rhs, fullProcess: fullProcess)
-    return partial
-      ? fuzzPartialRatio(lhs: sortedLhs, rhs: sortedRhs)
-      : fuzzRatio(lhs: sortedLhs, rhs: sortedRhs)
-  }
-
   static func fuzzTokenSortRatio(lhs: String, rhs: String, fullProcess: Bool = true) -> Int {
     fuzzTokenSort(lhs: lhs, rhs: rhs, partial: false, fullProcess: fullProcess)
   }
@@ -77,66 +61,17 @@ public extension String {
     fuzzTokenSort(lhs: lhs, rhs: rhs, partial: true, fullProcess: fullProcess)
   }
 
-  private static func tokenSetFrom(_ value: String) -> Set<String> {
-    Set(value.components(separatedBy: " "))
-  }
-
-  private static func sortedJoined(_ tokens: Set<String>) -> String {
-    tokens.sorted().joined(separator: " ")
-  }
-
-  private static func combineAndTrim(_ lhs: String, _ rhs: String) -> String {
-    (lhs + " " + rhs).trimmingCharacters(in: .whitespaces)
-  }
-
-  static private func tokenSet(lhs: String, rhs: String, partial: Bool = true, fullProcess: Bool = true) -> Int {
-    let processedLhs: String = fullProcess ? StringProcessor.process(value: lhs) : lhs
-    let processedRhs: String = fullProcess ? StringProcessor.process(value: rhs) : rhs
-
-    if processedLhs.isEmpty && processedRhs.isEmpty {
-      return 100
-    }
-    if processedLhs.isEmpty || processedRhs.isEmpty {
-      return 0
-    }
-
-    let tokensLhs: Set<String> = tokenSetFrom(processedLhs)
-    let tokensRhs: Set<String> = tokenSetFrom(processedRhs)
-
-    let intersection: Set<String> = tokensLhs.intersection(tokensRhs)
-    let diffLhs: Set<String> = tokensLhs.subtracting(intersection)
-    let diffRhs: Set<String> = tokensRhs.subtracting(intersection)
-
-    let sortedSect: String = sortedJoined(intersection)
-    let sortedLhsToRhs: String = sortedJoined(diffLhs)
-    let sortedRhsToLhs: String = sortedJoined(diffRhs)
-
-    let combinedLhsToRhs: String = combineAndTrim(sortedSect, sortedLhsToRhs)
-    let combinedRhsToLhs: String = combineAndTrim(sortedSect, sortedRhsToLhs)
-
-    let pairwise: [(String, String)] = [
-      (sortedSect, combinedLhsToRhs),
-      (sortedSect, combinedRhsToLhs),
-      (combinedLhsToRhs, combinedRhsToLhs)
-    ]
-    let ratios: [Int] = pairwise.map { (lhs, rhs) -> Int in
-      partial
-        ? String.fuzzPartialRatio(lhs: lhs, rhs: rhs)
-        : String.fuzzRatio(lhs: lhs, rhs: rhs)
-    }
-
-    return ratios.max() ?? 0
-  }
-
   static func fuzzTokenSetRatio(
     lhs: String,
     rhs: String,
+    forceAscii: Bool = true,
     fullProcess: Bool = true
   ) -> Int {
     tokenSet(
       lhs: lhs,
       rhs: rhs,
       partial: false,
+      forceAscii: forceAscii,
       fullProcess: fullProcess
     )
   }
@@ -144,13 +79,97 @@ public extension String {
   static func fuzzPartialTokenSetRatio(
     lhs: String,
     rhs: String,
+    forceAscii: Bool = true,
     fullProcess: Bool = true
   ) -> Int {
     tokenSet(
       lhs: lhs,
       rhs: rhs,
       partial: true,
+      forceAscii: forceAscii, 
       fullProcess: fullProcess
     )
   }
+}
+
+func fuzzProcessAndSort(value: String, fullProcess: Bool = true) -> String {
+  let value: String = fullProcess ? StringProcessor.process(value: value) : value
+  return Array(value.components(separatedBy: " "))
+    .sorted()
+    .joined(separator: " ")
+    .trimmingCharacters(in: CharacterSet(charactersIn: " "))
+}
+
+private func fuzzTokenSort(lhs: String, rhs: String, partial: Bool = true, fullProcess: Bool = true) -> Int {
+  let sortedLhs: String = fuzzProcessAndSort(value: lhs, fullProcess: fullProcess)
+  let sortedRhs: String = fuzzProcessAndSort(value: rhs, fullProcess: fullProcess)
+  return partial
+    ? String.fuzzPartialRatio(lhs: sortedLhs, rhs: sortedRhs)
+    : String.fuzzRatio(lhs: sortedLhs, rhs: sortedRhs)
+}
+
+private func tokenSetFrom(_ value: String) -> Set<String> {
+  Set(value.components(separatedBy: " "))
+}
+
+private func sortedJoined(_ tokens: Set<String>) -> String {
+  tokens.sorted().joined(separator: " ")
+}
+
+private func combineAndTrim(_ lhs: String, _ rhs: String) -> String {
+  (lhs + " " + rhs).trimmingCharacters(in: .whitespaces)
+}
+
+private func tokenSet(
+  lhs: String, 
+  rhs: String, 
+  partial: Bool = true, 
+  forceAscii: Bool = true, 
+  fullProcess: Bool = true
+) -> Int {
+
+  if !fullProcess && lhs == rhs {
+    return 100
+  }
+
+  let processedLhs: String = fullProcess 
+    ? StringProcessor.process(value: lhs, forceAscii: forceAscii) 
+    : lhs
+  let processedRhs: String = fullProcess 
+    ? StringProcessor.process(value: rhs, forceAscii: forceAscii) 
+    : rhs
+
+  if processedLhs.isEmpty && processedRhs.isEmpty {
+    return 100
+  }
+  if processedLhs.isEmpty || processedRhs.isEmpty {
+    return 0
+  }
+
+  let tokensLhs: Set<String> = tokenSetFrom(processedLhs)
+  let tokensRhs: Set<String> = tokenSetFrom(processedRhs)
+
+  let intersection: Set<String> = tokensLhs.intersection(tokensRhs)
+  let diffLhs: Set<String> = tokensLhs.subtracting(intersection)
+  let diffRhs: Set<String> = tokensRhs.subtracting(intersection)
+
+  let sortedSect: String = sortedJoined(intersection)
+  let sortedLhsToRhs: String = sortedJoined(diffLhs)
+  let sortedRhsToLhs: String = sortedJoined(diffRhs)
+
+  let combinedLhsToRhs: String = combineAndTrim(sortedSect, sortedLhsToRhs)
+  let combinedRhsToLhs: String = combineAndTrim(sortedSect, sortedRhsToLhs)
+
+  let pairwise: [(String, String)] = [
+    (sortedSect, combinedLhsToRhs),
+    (sortedSect, combinedRhsToLhs),
+    (combinedLhsToRhs, combinedRhsToLhs)
+  ]
+  let ratios: [Int] = pairwise.map { (lhs, rhs) -> Int in
+    partial
+      ? String.fuzzPartialRatio(lhs: lhs, rhs: rhs)
+      : String.fuzzRatio(lhs: lhs, rhs: rhs)
+  }
+
+  return ratios.max() ?? 0
 }

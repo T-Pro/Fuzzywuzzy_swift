@@ -12,8 +12,14 @@ class StringMatcher: NSObject {
   let lhs: String
   let rhs: String
 
-  lazy var levenshteinDistance: Int = LevenshteinDistance.distance(lhs: self.lhs, rhs: self.rhs)
-  lazy var commonSubStringPairs: [CommonSubstringPair] = CommonSubstrings.pairs(lhs: self.lhs, rhs: self.rhs)
+  lazy var levenshteinDistance: Int = Levenshtein.distance(
+    lhs: self.lhs,
+    rhs: self.rhs
+  )
+  lazy var commonSubStringPairs: [CommonSubstringPair] = CommonSubstrings.pairs(
+    lhs: self.lhs,
+    rhs: self.rhs
+  )
 
   init(lhs: String, rhs: String) {
     self.lhs = lhs
@@ -22,14 +28,19 @@ class StringMatcher: NSObject {
   }
 
   func fuzzRatio() -> Float {
-    let lenSum: Int = lhs.count + rhs.count
+    let lenSum: Int = self.lhs.count + self.rhs.count
     if lenSum == 0 {
-      return 1
+      return 1.0
     }
-    if lhs.count == rhs.count && levenshteinDistance == lhs.count {
-      return 0
+    var levenshteinDistance: Float
+    if self.lhs.isEmpty {
+      levenshteinDistance = Float(self.rhs.count)
+    } else if self.rhs.isEmpty {
+      levenshteinDistance = Float(self.lhs.count)
+    } else {
+      levenshteinDistance = Float(self.levenshteinDistance)
     }
-    return Float(lenSum - levenshteinDistance) / Float(lenSum)
+    return (Float(lenSum) - levenshteinDistance) / Float(lenSum)
   }
 
 }
