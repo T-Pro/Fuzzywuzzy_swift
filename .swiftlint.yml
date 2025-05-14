@@ -1,0 +1,54 @@
+disabled_rules:
+  # - identifier_name
+  # - line_length
+  # - todo
+  # - cyclomatic_complexity
+  # - type_body_length
+  # - file_length
+  # - function_body_length
+  # - function_parameter_count
+  # - nesting
+  # - block_based_kvo
+  # - duplicate_imports
+  # - unneeded_override
+  
+  # Remove:
+  # - unused_closure_parameter
+  # - explicit_type_interface
+  # - large_tuple
+  # - inclusive_language
+  # - unneeded_override
+  # - shorthand_operator
+
+opt_in_rules: # some rules are only opt-in
+  - explicit_type_interface
+  - force_unwrapping
+  - implicit_return
+  - attributes
+  - closure_end_indentation
+  - closure_spacing
+  - conditional_returns_on_newline
+  - empty_string
+  - contains_over_first_not_nil
+  # - empty_count //Disabled due Realm conflict
+  # - first_where //Disabled due Realm conflict
+
+excluded:
+  - Carthage
+  - Pods
+  - Package.swift
+  # - .*\\.c
+
+force_cast: warning
+force_try: warning
+
+# - Force explicity type for every variable on the project, this is needed to let the Swift compiler more lightweight
+# explicit_type_interface: 
+#   severity: warning
+
+# type_body_length:
+#   - 1500 # warning
+#   - 2000 # error
+
+# weak_delegate:
+#   excluded: ".*Test\\.swift"

@@ -9,24 +9,38 @@
 import Foundation
 
 class StringProcessor: NSObject {
+
+  // swiftlint:disable force_try
+  @available(iOS 16.0, macOS 13.0, watchOS 9.0, tvOS 16.0, visionOS 1.0, *)
+  private static let cachedRegex: Regex = {
+    try! Regex("\\W+").ignoresCase()
+  }()
+
+  private static let cachedNSRegularExpression: NSRegularExpression = {
+    try! NSRegularExpression(pattern: "\\W+", options: .caseInsensitive)
+  }()
+  // swiftlint:enable force_try
+
   /// Process string by
   /// removing all but letters and numbers
   /// trim whitespace
   /// force to lower case
-  class func process(str: String) -> String {
-    let lowercased = str.lowercased()
+  class func process(value: String) -> String {
+    if value.isEmpty {
+        return value
+    }
+    let lowercased: String = value.lowercased()
     let replaced: String
     if #available(iOS 16.0, macOS 13.0, watchOS 9.0, tvOS 16.0, visionOS 1.0, *) {
-      let regex = try! Regex("\\W+")
-      replaced = lowercased.replacing(regex, with: " ")
+      replaced = lowercased.replacing(cachedRegex, with: " ")
     } else {
-      let regex = try! NSRegularExpression(pattern: "\\W+", options: .caseInsensitive)
-      let range = NSRange(location: 0, length: lowercased.utf16.count)
-      replaced = regex.stringByReplacingMatches(in: lowercased, options: [], range: range, withTemplate: " ")
+      replaced = cachedNSRegularExpression.stringByReplacingMatches(
+        in: lowercased,
+        options: [],
+        range: NSRange(location: 0, length: lowercased.utf16.count),
+        withTemplate: " "
+      )
     }
-    return replaced.trimmingCharacters(
-      in: NSCharacterSet.init(charactersIn: " ") as CharacterSet
-    )
+    return replaced.trimmingCharacters(in: CharacterSet(charactersIn: " "))
   }
 }
-

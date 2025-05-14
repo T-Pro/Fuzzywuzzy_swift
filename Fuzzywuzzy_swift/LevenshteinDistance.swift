@@ -9,18 +9,18 @@
 import Foundation
 
 class LevenshteinDistance: NSObject {
-  class func distance(str1: String, str2: String) -> Int {
+  class func distance(lhs: String, rhs: String) -> Int {
     /// convert String to array of Characters
-    let charArr1 = Array(str1)
-    let charArr2 = Array(str2)
-    
+    let charArr1: [Character] = Array(lhs)
+    let charArr2: [Character] = Array(rhs)
+
     /// handle empty string cases
     if charArr1.count == 0 || charArr2.count == 0 {
       return charArr1.count + charArr2.count
     }
 
     /// create the cost matrix
-    var costM = Array(
+    var costM: [[Int]] = Array(
       repeating: Array(repeating: 0, count: charArr2.count + 1),
       count: charArr1.count + 1
     )
@@ -36,9 +36,9 @@ class LevenshteinDistance: NSObject {
 
     for i in Array(1...charArr1.count) {
       for j in Array(1...charArr2.count) {
-        let cost1 = costM[i-1][j-1] + (charArr1[i-1] == charArr2[j-1] ? 0 : 1)
-        let cost2 = costM[i][j-1] + 1
-        let cost3 = costM[i-1][j] + 1
+        let cost1: Int = costM[i-1][j-1] + (charArr1[i-1] == charArr2[j-1] ? 0 : 1)
+        let cost2: Int = costM[i][j-1] + 1
+        let cost3: Int = costM[i-1][j] + 1
         costM[i][j] = min(cost1, cost2, cost3)
       }
     }
@@ -46,4 +46,3 @@ class LevenshteinDistance: NSObject {
     return costM[charArr1.count][charArr2.count]
   }
 }
-
