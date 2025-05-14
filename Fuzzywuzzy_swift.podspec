@@ -1,6 +1,6 @@
 Pod::Spec.new do |spec|
   spec.name = "Fuzzywuzzy_swift"
-  spec.version = "0.0.3"
+  spec.version = "0.0.4"
   spec.summary = "Fuzzy String Matching in Swift using Levenshtein Distance. Inspired by the python fuzzywuzzy library https://github.com/seatgeek/fuzzywuzzy"
   spec.description      = <<-DESC
       Fuzzy String Matching in Swift using Levenshtein Distance. Ported from the python fuzzywuzzy library https://github.com/seatgeek/fuzzywuzzy

@@ -6,27 +6,41 @@
 //  Copyright © 2016 LiXian. All rights reserved.
 //
 
-import UIKit
+import Foundation
 
 class StringMatcher: NSObject {
-    let str1: String
-    let str2: String
+  let lhs: String
+  let rhs: String
 
-    lazy var levenshteinDistance: Int = LevenshteinDistance.distance(str1: self.str1, str2: self.str2)
-    lazy var commonSubStringPairs: [CommonSubstringPair] = CommonSubstrings.pairs(str1: self.str1, str2: self.str2)
+  lazy var levenshteinDistance: Int = Levenshtein.distance(
+    lhs: self.lhs,
+    rhs: self.rhs
+  )
+  lazy var commonSubStringPairs: [CommonSubstringPair] = CommonSubstrings.pairs(
+    lhs: self.lhs,
+    rhs: self.rhs
+  )
 
-    init(str1: String, str2: String) {
-        self.str1 = str1
-        self.str2 = str2
-        super.init()
+  init(lhs: String, rhs: String) {
+    self.lhs = lhs
+    self.rhs = rhs
+    super.init()
+  }
+
+  func fuzzRatio() -> Float {
+    let lenSum: Int = self.lhs.count + self.rhs.count
+    if lenSum == 0 {
+      return 1.0
     }
-
-    func fuzzRatio() -> Float {
-        let lenSum = (str1.count + str2.count)
-        if lenSum == 0 { return 1 }
-        return Float(lenSum - levenshteinDistance) / Float(lenSum)
+    var levenshteinDistance: Float
+    if self.lhs.isEmpty {
+      levenshteinDistance = Float(self.rhs.count)
+    } else if self.rhs.isEmpty {
+      levenshteinDistance = Float(self.lhs.count)
+    } else {
+      levenshteinDistance = Float(self.levenshteinDistance)
     }
-
+    return (Float(lenSum) - levenshteinDistance) / Float(lenSum)
+  }
 
 }
-
